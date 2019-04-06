@@ -15,25 +15,100 @@
   <script>
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-
-    var renderer = new THREE.WebGLRenderer();
+// var camera = new THREE.OrthographicCamera( 3 / - 2, 3 / 2, 3 / 2, 3 / - 2, 1, 1000 );
+        var renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
     var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    var cube = new THREE.Mesh( geometry, material );
-    scene.add( cube );
+    var material = new THREE.MeshNormalMaterial( { color: 0x00ff00 } );
+    var material2 = new THREE.MeshBasicMaterial( { color: 0xff00ff } );
 
+    var cube = new THREE.Mesh( geometry, material );
+
+    firstRenderTarget = new THREE.WebGLRenderTarget( 1512, 1512, { format: THREE.RGBFormat } );
+    var screenMaterial = new THREE.MeshBasicMaterial( { map: firstRenderTarget } );
+
+  var material3 = new THREE.MeshBasicMaterial( { map: firstRenderTarget } )
+    scene.add( cube );
+    // scene.add( cube2 );
+    var pickingScene = new THREE.Scene();
+    var pickingTexture = new THREE.WebGLRenderTarget(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
+    pickingTexture.texture.minFilter = THREE.LinearFilter;
+    // var planelikeGeometry = new THREE.CubeGeometry( 30, 30, 1 );
+    // var screenGeometry = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight )
+    // var plane = new THREE.Mesh( screenGeometry,material3  );
+    // plane.position.set(0,0,-500);
+    // plane.rotation.set(0,0,0)
+    // scene.add(plane);
     camera.position.z = 5;
+    var light = new THREE.AmbientLight( 0x777777 ); // soft white light
+    scene.add( light );
+    let i = 1
+    var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+scene.add( directionalLight );
+    // renderer.setRenderTarget(renderTarget,0)
+
+    var planeGeometry = new THREE.CubeGeometry( 400, 200, 1, 1 );
+  	finalRenderTarget = new THREE.WebGLRenderTarget( 1111, 1111, { format: THREE.RGBFormat } );
+  	var planeMaterial = new THREE.MeshBasicMaterial( { map: finalRenderTarget } );
+  	var plane = new THREE.Mesh( planeGeometry, planeMaterial );
+
+    plane.position.set(0,0,-102);
+    scene.add(plane);
+
+  	screenScene = new THREE.Scene();
+
+    screenCamera = new THREE.OrthographicCamera(
+  		window.innerWidth  / -2, window.innerWidth  /  2,
+  		window.innerHeight /  2, window.innerHeight / -2,
+  		-10000, 10000 );
+  	screenCamera.position.z = 1;
+  	screenScene.add( screenCamera );
+
+    var screenGeometry = new THREE.PlaneGeometry( 22, 22 );
+
+  	firstRenderTarget = new THREE.WebGLRenderTarget( 1111, 1111, { format: THREE.RGBFormat } );
+  	var screenMaterial = new THREE.MeshBasicMaterial( { map: firstRenderTarget } );
+
+  	var quad = new THREE.Mesh( screenGeometry, screenMaterial );
+  	// quad.rotation.x = Math.PI / 2;
+  	screenScene.add( quad );
+
+    function render()
+    {
+    	// textureCamera is located at the position of MovingCube
+    	//   (and therefore is contained within it)
+    	// Thus, we temporarily hide MovingCube
+    	//    so that it does not obscure the view from the camera.
+    	// put the result of textureCamera into the first texture.
+      renderer.setRenderTarget( firstRenderTarget );
+      renderer.render( scene , camera  );
+      // renderer.render( scene, camera, firstRenderTarget, true );
+
+    	// slight problem: texture is mirrored.
+    	//    solve problem by rendering (and hence mirroring) the texture again
+
+    	// render another scene containing just a quad with the texture
+    	//    and put the result into the final texture
+
+      renderer.setRenderTarget( finalRenderTarget );
+    	renderer.render( screenScene, screenCamera );
+
+    	// render the main scene
+
+      renderer.setRenderTarget( null );
+    	renderer.render( scene, camera );
+    }
 
     var animate = function () {
       requestAnimationFrame( animate );
 
       cube.rotation.x += 0.01;
       cube.rotation.y += 0.01;
+      // cube.position.y += 0.01;
+      render()
 
-      renderer.render( scene, camera );
     };
 
     animate();
