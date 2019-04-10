@@ -1,36 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
   <title>FRAPAL</title>
   <style>
-    body { margin: 0; }
-    canvas { width: 100%; height: 100% }
+    body {
+      margin: 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%
+    }
   </style>
 </head>
+
 <body>
   <script src="js/three.js"></script>
+
+  <script src="https://threejsfundamentals.org/threejs/resources/threejs/r103/js/shaders/CopyShader.js"></script>
+  <script src="https://threejsfundamentals.org/threejs/resources/threejs/r103/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://threejsfundamentals.org/threejs/resources/threejs/r103/js/postprocessing/RenderPass.js"></script>
+  <script src="https://threejsfundamentals.org/threejs/resources/threejs/r103/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://threejsfundamentals.org/threejs/../3rdparty/dat.gui.min.js"></script>
+
   <script>
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-// var camera = new THREE.OrthographicCamera( 3 / - 2, 3 / 2, 3 / 2, 3 / - 2, 1, 1000 );
-        var renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    // var camera = new THREE.OrthographicCamera( 3 / - 2, 3 / 2, 3 / 2, 3 / - 2, 1, 1000 );
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-    var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    var material = new THREE.MeshNormalMaterial( { color: 0x00ff00 } );
-    var material2 = new THREE.MeshBasicMaterial( { color: 0xff00ff } );
 
-    var cube = new THREE.Mesh( geometry, material );
+    var material2 = new THREE.MeshBasicMaterial({
+      color: 0xff00ff
+    });
 
-    firstRenderTarget = new THREE.WebGLRenderTarget( 1512, 1512, { format: THREE.RGBFormat } );
-    var screenMaterial = new THREE.MeshBasicMaterial( { map: firstRenderTarget } );
 
-  var material3 = new THREE.MeshBasicMaterial( { map: firstRenderTarget } )
-    scene.add( cube );
+    firstRenderTarget = new THREE.WebGLRenderTarget(1512, 1512, {
+      format: THREE.RGBFormat
+    });
+    var screenMaterial = new THREE.MeshBasicMaterial({
+      map: firstRenderTarget,
+      shading: THREE.FlatShading,
+      vertexColors: THREE.VertexColors
+    });
+
+    var material3 = new THREE.MeshBasicMaterial({
+      map: firstRenderTarget
+    })
     // scene.add( cube2 );
     var pickingScene = new THREE.Scene();
     var pickingTexture = new THREE.WebGLRenderTarget(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
@@ -42,76 +65,218 @@
     // plane.rotation.set(0,0,0)
     // scene.add(plane);
     camera.position.z = 5;
-    var light = new THREE.AmbientLight( 0x777777 ); // soft white light
-    scene.add( light );
+    var light = new THREE.AmbientLight(0x777777); // soft white light
+    scene.add(light);
     let i = 1
-    var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-scene.add( directionalLight );
+    var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    scene.add(directionalLight);
     // renderer.setRenderTarget(renderTarget,0)
 
-    var planeGeometry = new THREE.CubeGeometry( 400, 200, 1, 1 );
-  	finalRenderTarget = new THREE.WebGLRenderTarget( 1111, 1111, { format: THREE.RGBFormat } );
-  	var planeMaterial = new THREE.MeshBasicMaterial( { map: finalRenderTarget } );
-  	var plane = new THREE.Mesh( planeGeometry, planeMaterial );
+    var planeGeometry = new THREE.CubeGeometry(400, 200, 1, 1);
+    finalRenderTarget = new THREE.WebGLRenderTarget(2111, 2111, {
+      format: THREE.RGBFormat
+    });
+    var planeMaterial = new THREE.MeshBasicMaterial({
+      map: finalRenderTarget
+    });
+    var plane = new THREE.Mesh(planeGeometry, planeMaterial);
 
-    plane.position.set(0,0,-102);
+    plane.position.set(0, 0, -140);
     scene.add(plane);
 
-  	screenScene = new THREE.Scene();
+    screenScene = new THREE.Scene();
 
     screenCamera = new THREE.OrthographicCamera(
-  		window.innerWidth  / -2, window.innerWidth  /  2,
-  		window.innerHeight /  2, window.innerHeight / -2,
-  		-10000, 10000 );
-  	screenCamera.position.z = 1;
-  	screenScene.add( screenCamera );
+      window.innerWidth / -2, window.innerWidth / 2,
+      window.innerHeight / 2, window.innerHeight / -2,
+      -10000, 10000);
+    screenCamera.position.z = 10;
+    screenScene.add(screenCamera);
 
-    var screenGeometry = new THREE.PlaneGeometry( 22, 22 );
+    var screenGeometry = new THREE.PlaneGeometry(renderer.domElement.clientWidth, renderer.domElement.clientHeight);
 
-  	firstRenderTarget = new THREE.WebGLRenderTarget( 1111, 1111, { format: THREE.RGBFormat } );
-  	var screenMaterial = new THREE.MeshBasicMaterial( { map: firstRenderTarget } );
+    firstRenderTarget = new THREE.WebGLRenderTarget(renderer.domElement.clientWidth * 2, renderer.domElement.clientHeight * 2, {
+      format: THREE.RGBFormat
+    });
 
-  	var quad = new THREE.Mesh( screenGeometry, screenMaterial );
-  	// quad.rotation.x = Math.PI / 2;
-  	screenScene.add( quad );
 
-    function render()
-    {
-    	// textureCamera is located at the position of MovingCube
-    	//   (and therefore is contained within it)
-    	// Thus, we temporarily hide MovingCube
-    	//    so that it does not obscure the view from the camera.
-    	// put the result of textureCamera into the first texture.
-      renderer.setRenderTarget( firstRenderTarget );
-      renderer.render( scene , camera  );
+    const composer = new THREE.EffectComposer(renderer);
+
+    const colorShader = {
+      uniforms: {
+        tDiffuse: {
+          value: null
+        },
+        color: {
+          value: new THREE.Color(0xfffffff)
+        },
+        map: {
+          type: 't',
+          value: firstRenderTarget
+        },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color;
+        uniform sampler2D tDiffuse;
+        varying vec2 vUv;
+        uniform sampler2D map;
+        void main() {
+          vec4 previousPassColor = texture2D(map, vUv);
+          gl_FragColor = vec4(
+              color - previousPassColor.rgb   ,
+              previousPassColor.a);
+        }
+      `,
+    };
+
+    var materialS = new THREE.ShaderMaterial({
+      uniforms: colorShader.uniforms,
+      vertexShader: colorShader.vertexShader,
+      fragmentShader: colorShader.fragmentShader,
+      map: firstRenderTarget,
+      defines: {
+        USE_MAP: true
+      }
+    });
+    var geometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+    var material = new THREE.MeshBasicMaterial({
+      color: 0xffffff
+    });
+    var cube = new THREE.Mesh(geometry, material);
+    // scene.add( cube );
+
+    const colorPass = new THREE.ShaderPass(colorShader);
+    // colorPass.renderToScreen = true;
+
+    var screenMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: false,
+      opacity: 0.98,
+      map: firstRenderTarget
+    });
+    // screenMaterial.blending =  THREE.SubtractiveBlending
+    var quad = new THREE.Mesh(screenGeometry, materialS);
+    // quad.rotation.x = Math.PI / 2;
+    screenScene.add(quad);
+
+    // composer.addPass(new THREE.RenderPass(screenScene, materialS ));
+    // composer.addPass(colorPass);
+    let plane2 = plane.clone()
+    scene.add(plane2)
+    plane.rotation.y = -0.01
+    plane2.rotation.y = 0.01
+
+    function render() {
+      // textureCamera is located at the position of MovingCube
+      //   (and therefore is contained within it)
+      // Thus, we temporarily hide MovingCube
+      //    so that it does not obscure the view from the camera.
+      // put the result of textureCamera into the first texture.
+      renderer.setRenderTarget(firstRenderTarget);
+      renderer.render(scene, camera);
       // renderer.render( scene, camera, firstRenderTarget, true );
 
-    	// slight problem: texture is mirrored.
-    	//    solve problem by rendering (and hence mirroring) the texture again
+      // slight problem: texture is mirrored.
+      //    solve problem by rendering (and hence mirroring) the texture again
 
-    	// render another scene containing just a quad with the texture
-    	//    and put the result into the final texture
-
-      renderer.setRenderTarget( finalRenderTarget );
-    	renderer.render( screenScene, screenCamera );
-
-    	// render the main scene
-
-      renderer.setRenderTarget( null );
-    	renderer.render( scene, camera );
+      // render another scene containing just a quad with the texture
+      //    and put the result into the final texture
+      // composer.render();
+      renderer.setRenderTarget(finalRenderTarget);
+      renderer.render(screenScene, screenCamera);
+      // composer.render();
+      // console.log(composer)
+      //
+      // render the main scene
+      // if (!(i++ % 1))
+      // cube.material.color.setHex( 0xffffff*Math.random() );
+      // cube.visible = !cube.visible
+      // plane.position.set(0,0,-i);
+      renderer.setRenderTarget(null);
+      renderer.render(scene, camera);
     }
 
-    var animate = function () {
-      requestAnimationFrame( animate );
+    var animate = function() {
+      requestAnimationFrame(animate);
 
       cube.rotation.x += 0.01;
       cube.rotation.y += 0.01;
+
       // cube.position.y += 0.01;
       render()
 
     };
+    let ctrlPresed = false
 
-    animate();
+    function init() {
+      canvas = document.getElementsByTagName('canvas')[0]
+      canvas.setAttribute("tabindex", 0);
+      canvas.addEventListener("mousemove", function(e) {
+        plane.position.set(e.screenX - (renderer.domElement.clientWidth / 2), (renderer.domElement.clientHeight / 2) - e.screenY, plane.position.z);
+        plane2.position.set((renderer.domElement.clientWidth / 2) - e.screenX, (renderer.domElement.clientHeight / 2) - e.screenY, plane.position.z);
+      })
+      canvas.addEventListener('keydown', logKey);
+      canvas.addEventListener('keyup', logKeyup);
+
+      function logKey(e) {
+        if (event.keyCode === 17) {
+          ctrlPresed = true
+          return;
+        }
+      }
+
+      function logKeyup(e) {
+        if (event.keyCode === 17) {
+          ctrlPresed = false
+          return;
+        }
+      }
+      canvas.addEventListener("keydown", event => {
+
+        // do something
+      });
+      if (canvas.addEventListener) {
+        if ('onwheel' in document) {
+          // IE9+, FF17+, Ch31+
+          canvas.addEventListener("wheel", onWheel);
+        } else if ('onmousewheel' in document) {
+          // canvas устаревший вариант события
+          canvas.addEventListener("mousewheel", onWheel);
+        } else {
+          // Firefox < 17
+          canvas.addEventListener("MozMousePixelScroll", onWheel);
+        }
+      } else { // IE8-
+        canvas.attachEvent("onmousewheel", onWheel);
+      }
+
+      function onWheel(e) {
+        e = e || window.event;
+
+        // wheelDelta не дает возможность узнать количество пикселей
+        var delta = e.deltaY || e.detail || e.wheelDelta;
+
+        if (ctrlPresed) {
+          plane.position.z += delta / 10
+          plane2.position.z += delta / 10
+        } else {
+          plane.rotation.set(0, -0.01, plane.rotation.z + delta / 10000);
+          plane2.rotation.set(0, 0.01, -plane.rotation.z);
+        }
+
+        e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+      }
+      animate();
+    }
+    init()
   </script>
 </body>
+
 </html>
